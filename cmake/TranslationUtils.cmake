@@ -81,8 +81,26 @@ function(ADD_QT_TRANSLATIONS_RESOURCE res_file)
     set(${res_file} ${_res_file} PARENT_SCOPE)
 endfunction()
 
-add_custom_target(lupdate
-    COMMAND ${Qt${QT_VERSION_MAJOR}_LUPDATE_EXECUTABLE} -recursive ${PROJECT_SOURCE_DIR} -ts *.ts
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Updating translations"
-)
+include( CMakeParseArguments )
+
+function(ADD_LUPDATE_TARGET)
+    set( _OPTIONS_ARGS )
+    set( _ONE_VALUE_ARGS )
+    set( _MULTI_VALUE_ARGS TS_FILES )
+
+    cmake_parse_arguments( _ARGS "${_OPTIONS_ARGS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN} )
+
+    set(_abs_files)
+    foreach(_current_FILE ${_ARGS_TS_FILES})
+        get_filename_component(_abs_FILE ${_current_FILE} ABSOLUTE)
+        list(APPEND _abs_files ${_abs_FILE})
+    endforeach()
+
+    message(STATUS "${_abs_files}")
+    add_custom_target(lupdate
+        COMMAND ${Qt${QT_VERSION_MAJOR}_LUPDATE_EXECUTABLE} -recursive ${PROJECT_SOURCE_DIR} -ts ${_abs_files}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT "Updating translations"
+    )
+
+endfunction()
